@@ -27,7 +27,7 @@ async def send_message_to_channel(bot: Bot, config: Config):
 
 def set_scheduled_jobs(scheduler, bot, config):
     scheduler.add_job(send_message_to_channel, "interval", args=(bot, config),
-                      seconds=10, timezone="Asia/Tashkent")
+                      hours=1, timezone="Asia/Tashkent")
 
 
 async def main():
