@@ -1,33 +1,36 @@
 import asyncio
 import logging
 
+import sentry_sdk
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-
+from aiogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import load_config, Config
 
-import sentry_sdk
-
-
 logger = logging.getLogger(__name__)
 
 
-async def send_message_to_channel(bot: Bot, config: Config):
+async def send_message_to_channel(bot: Bot):
+    config: Config = bot.get("config")
     for channel_id in config.channel_id:
         try:
-            await bot.copy_message(from_chat_id=config.admin_id, message_id=config.message_id, chat_id=channel_id)
+            await bot.copy_message(from_chat_id=config.admin_id, message_id=bot.get("config"), chat_id=channel_id)
             await asyncio.sleep(0.5)
-            print("succes")
-        except Exception as e:
-            print(e)
-    print("end")
+        except:
+            pass
 
 
-def set_scheduled_jobs(scheduler, bot, config):
-    scheduler.add_job(send_message_to_channel, "interval", args=(bot, config),
-                      hours=1, timezone="Asia/Tashkent")
+async def get_mess(m: Message):
+    config: Config = m.bot.get("config")
+    if m.from_user.id == config.admin_id:
+        m.bot['msg_id'] = m.message_id
+        await m.answer("O'zgartirildi ✅")
+
+
+def set_scheduled_jobs(scheduler, bot):
+    scheduler.add_job(send_message_to_channel, "interval", args=bot, hours=1, timezone="Asia/Tashkent")
 
 
 async def main():
@@ -42,11 +45,12 @@ async def main():
         traces_sample_rate=1.0
     )
 
-    storage = MemoryStorage()
     bot = Bot(token=config.token, parse_mode='HTML')
-    dp = Dispatcher(bot, storage=storage)
+    bot['config'] = config
+    dp = Dispatcher(bot, storage=MemoryStorage())
+    dp.register_message_handler(get_mess)
     scheduler = AsyncIOScheduler()
-    set_scheduled_jobs(scheduler, bot, config)
+    set_scheduled_jobs(scheduler, bot)
 
     # start
     try:
