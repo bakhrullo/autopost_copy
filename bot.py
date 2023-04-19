@@ -30,7 +30,7 @@ async def get_mess(m: Message):
 
 
 def set_scheduled_jobs(scheduler, bot):
-    scheduler.add_job(send_message_to_channel, "interval", args=bot, hours=1, timezone="Asia/Tashkent")
+    scheduler.add_job(send_message_to_channel, "interval", args=[bot], hours=1, timezone="Asia/Tashkent")
 
 
 async def main():
