@@ -24,7 +24,7 @@ async def send_message_to_channel(bot: Bot):
 
 async def get_mess(m: Message):
     config: Config = m.bot.get("config")
-    if m.from_user.id == config.admin_id:
+    if m.from_user.id in config.admin_id:
         m.bot['msg_id'] = m.message_id
         await m.answer("O'zgartirildi ✅")
 
